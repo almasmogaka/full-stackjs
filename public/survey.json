@@ -1,0 +1,51 @@
+
+{
+    "completedHtml": "<p>Thank you for your feedback</p><br><br>\n\n<p>Please hand the tablet back to the clinic staff</p>\n<br><br><br><br><br><br>\n<a href='/location'>start new survey</a>",
+    "pages": [
+     {
+      "name": "page1",
+      "elements": [
+       {
+        "type": "rating",
+        "name": "question1",
+        "title": "How likely is it that you would recommend this clinic to a family member or friend?",
+        "rateMax": 10,
+        "minRateDescription": "not likely",
+        "maxRateDescription": "very likely"
+       }
+      ],
+      "navigationButtonsVisibility": "show"
+     },
+     {
+      "name": "page2",
+     " elements": [
+       {
+        "type": "checkbox",
+        "name": "question2",
+        "choices": [
+         "item1",
+         "item2",
+         "item3"
+        ]
+       }
+      ],
+      "visibleIf": "{question1} <= 8"
+     },
+     {
+      "name": "page3",
+      "elements": [
+       {
+        "type": "checkbox",
+        "name": "question3",
+        "choices": [
+         "item1",
+         "item2",
+         "item3"
+        ]
+       }
+      ],
+      "visibleIf": "{question1} >= 9"
+     }
+    ],
+    "showProgressBar": "bottom"
+   }
