@@ -1,8 +1,6 @@
 #modules
-node_modules/
+node_modules
 
-# Logs
-logs
-*.log
-**/logs
-npm-debug.log*
+../log
+./logs
+../.log

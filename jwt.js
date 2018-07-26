@@ -24,36 +24,41 @@ con.connect((err) => {
     if (err) throw err;
 
 });
+let user = {
+    id: 1,
+    name: "usernm"
+  };
+
 //add route
 server.route({
     method: 'POST',
     path: '/loginApi',
     config: { auth: false },
     handler: (request, h) => {
-        let usernm = request.payload.username;
-        let pass = request.payload.password;
+        let payload = { usernm: usernm = request.payload.username, pass: pass = request.payload.password}
+        // let usernm = request.payload.username;
+        // let pass = request.payload.password;
         return new Promise(
             (res, reject) => {
-                con.query("select * from restApi.login where username = '" + usernm + "' and password = '" + pass + "'", (err, rows, fields) => {
+                con.query("select * from restApi.login where username = '" + payload.usernm + "' and password = '" + payload.pass + "'", (err, rows, fields) => {
                     if (err) {
                         reject(err);
-                    }                    
-                    
-                    let result = { username: rows[0].username }                   
-                    
-                    let token = JWT.sign(result, 'mysecretKey', { expiresIn: '10d' });
-
-                    if (rows[0].username == usernm && rows[0].password == pass) {
-                        console.log('successful');                        
-                         res ({
-                             token: token
-                         }); 
-                    } else {
-                        console.log('unsuccessful');
-                        res({ "Failure": "Invalid username or password" });
-                    }                 
-                   
-                    
+                    }    
+                    console.log(rows)                                                        
+                    let token = JWT.sign(rows[0].payload, 'mysecretKey', { expiresIn: '10h' });
+                  
+                      // Gen token
+                      console.log('Token',token);
+                      return ({                          
+                        token: token
+                      });                     
+                    // if (rows[0].users == 1) {
+                    //     console.log('successful');
+                    //     res({ "success": "Login is successful" });
+                    // } else {
+                    //     console.log('unsuccessful');
+                    //     res({ "Failure": "Invalid username or password" });
+                    // }
                 });
             }
         );
@@ -65,7 +70,7 @@ server.route({
     handler: (request, h) => {
         let username = request.payload.username;
         let password = request.payload.password;
-        let email = request.payload.email;     
+        let email = request.payload.email;
         return new Promise(
             (res, reject) => {
 
@@ -98,27 +103,30 @@ server.route({
                 });
             }
         );
+        //return 'Hello, '+ encodeURIComponent(request.params.name) +'!';
     }
 });
 const init = async () => {
 
     await server.register(HapiAuth);
-
-    server.auth.strategy('jwt', 'jwt', {
-        key: jwksRsa.hapiJwt2Key({
-            cache: true,
-            rateLimit: true,
-            jwksRequestsPerMinute: 5,
-
-        }),
-        verifyOptions: {
-            algorithms: ['RS256']
-        },
-        validate: validate
-    });
-
-    server.auth.default('jwt');
-
+         
+        server.auth.strategy('jwt', 'jwt', {
+            key: jwksRsa.hapiJwt2Key({
+                cache: true,
+                rateLimit: true,
+                jwksRequestsPerMinute: 5,
+                
+              }),
+              verifyOptions: { 
+                audience: '{YOUR-API-AUDIENCE-ATTRIBUTE}',
+                issuer: "{YOUR-AUTH0-DOMAIN}",
+                algorithms: ['RS256']
+              },
+              validate: validate
+            });
+          
+            server.auth.default('jwt');        
+      
     await server.register(require('inert'));
 
     server.route({
@@ -129,13 +137,13 @@ const init = async () => {
             return h.file('./public/survey.json');
         }
     });
-    // await server.register({
-    //     plugin: require('hapi-pino'),
-    //     options: {
-    //         prettyprint: false,
-    //         logEvents: ['response']
-    //     }
-    // });
+    await server.register({
+        plugin: require('hapi-pino'),
+        options: {
+            prettyprint: false,
+            logEvents: ['response']
+        }
+    });
     await server.start();
     console.log(`Server running at: ${server.info.uri}`);
 };
@@ -147,15 +155,9 @@ process.on('unhandledRejection', (err) => {
 init();
 
 function validate(decoded, request, callback) {
-
-    con.query(`select * from restApi.login where username = ${decoded.username}`, (err, rows, fields) => {          
-             if(err) throw err;
-        if (rows[0].username == usernm ) {
-            console.log('successful');
-            return callback(null, true);
-        } else {
-            console.log('unsuccessful');
-            return callback(null, false);
-        }
-    } );
-}
+    if (decoded.username == usernm) {
+      return callback(null, true);
+    } else {
+      return callback(null, false);
+    }
+  }
